@@ -27,7 +27,6 @@ public class TaskFiveTests {
     @Autowired
     private BalanceQuerier balanceQuerier;
 
-
     @Test
     void task_five_verifier() throws InterruptedException {
         userPopulator.populate();
