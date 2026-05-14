@@ -19,12 +19,15 @@ public class TransactionService {
     private static final Logger logger = LoggerFactory.getLogger(TransactionService.class);
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
+    private final IncentiveService incentiveService;
 
     @Autowired
     public TransactionService(TransactionRepository transactionRepository,
-                              UserRepository userRepository) {
+                              UserRepository userRepository,
+                              IncentiveService incentiveService) {
         this.transactionRepository = transactionRepository;
         this.userRepository = userRepository;
+        this.incentiveService = incentiveService;
     }
 
     @KafkaListener(topics = "transactions", containerFactory = "kafkaListenerContainerFactory")
@@ -45,14 +48,18 @@ public class TransactionService {
             UserRecord recipient = recipientOpt.get();
 
             if (sender.getBalance() >= transaction.getAmount()) {
+                com.jpmc.midascore.foundation.Incentive incentive = incentiveService.getIncentive(transaction);
+                float incentiveAmount = incentive != null ? incentive.getAmount() : 0f;
+
                 sender.setBalance(sender.getBalance() - transaction.getAmount());
-                recipient.setBalance(recipient.getBalance() + transaction.getAmount());
+                recipient.setBalance(recipient.getBalance() + transaction.getAmount() + incentiveAmount);
 
                 userRepository.save(sender);
                 userRepository.save(recipient);
 
                 TransactionRecord transactionRecord = new TransactionRecord();
                 transactionRecord.setAmount((double) transaction.getAmount());
+                transactionRecord.setIncentive((double) incentiveAmount);
                 transactionRecord.setSender(sender);
                 transactionRecord.setRecipient(recipient);
                 transactionRepository.save(transactionRecord);

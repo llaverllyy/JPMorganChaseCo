@@ -13,6 +13,8 @@ public class TransactionRecord {
 
     private Double amount;
 
+    private Double incentive;
+
     @ManyToOne
     @JoinColumn(name = "sender_id", nullable = false)
     private UserRecord sender;
@@ -37,6 +39,14 @@ public class TransactionRecord {
 
     public Double getAmount() {
         return amount;
+    }
+
+    public void setIncentive(Double incentive) {
+        this.incentive = incentive;
+    }
+
+    public Double getIncentive() {
+        return incentive;
     }
 
     public void setSender(UserRecord sender) {
